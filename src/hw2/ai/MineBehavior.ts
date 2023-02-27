@@ -31,6 +31,7 @@ export default class MineBehavior implements AI {
 
         this.receiver = new Receiver();
         this.receiver.subscribe(HW2Events.LASER_MINE_COLLISION);
+        this.receiver.subscribe(HW2Events.PLAYER_MINE_COLLISION);
         this.receiver.subscribe(HW2Events.MINE_EXPLODED);
 
         this.activate(options);
@@ -50,6 +51,10 @@ export default class MineBehavior implements AI {
         switch(event.type) {
             case HW2Events.LASER_MINE_COLLISION: {
                 this.handleLaserMineCollision(event);
+                break;
+            }
+            case HW2Events.PLAYER_MINE_COLLISION: {
+                this.handlePlayerMineCollision(event);
                 break;
             }
             case HW2Events.MINE_EXPLODED: {
@@ -89,11 +94,19 @@ export default class MineBehavior implements AI {
         }
     }
 
+    protected handlePlayerMineCollision(event: GameEvent): void {
+        let id = event.data.get("id");
+        if (id === this.owner.id) {
+            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED)
+        }
+    }
+
     protected handleMineExploded(event: GameEvent): void {
         let id = event.data.get("owner");
         if (id === this.owner.id) {
             this.owner.position.copy(Vec2.ZERO);
             this.owner.visible = false;
+            this.owner.unfreeze();
         }
     }
 }
